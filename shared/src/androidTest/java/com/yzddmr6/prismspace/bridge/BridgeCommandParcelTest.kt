@@ -76,6 +76,19 @@ class BridgeCommandParcelTest {
                 QueueTransferOpen(TransferOpenRequestDto("id", BridgeOpenMode.Folder, null, null, "Pictures/PrismSpace")),
                 true,
             )
+            assertRoundTrip(
+                QueueTransferOpen(
+                    TransferOpenRequestDto(
+                        "id",
+                        BridgeOpenMode.Share,
+                        null,
+                        null,
+                        null,
+                        listOf(TransferShareItemDto("content://a", "image/png"), TransferShareItemDto("content://b", null)),
+                    ),
+                ),
+                true,
+            )
             assertRoundTrip(RunBridgeSelfTest(byteArrayOf(1, 2)), SelfTestResultDto(byteArrayOf(2, 1), "location"))
             assertRoundTrip(
                 InstallCrossProfileForwarding(CrossProfileForwardingKind.ProfileDownloads),
@@ -96,6 +109,7 @@ class BridgeCommandParcelTest {
             assertRoundTrip(TriggerIncrementalProvisioning, true)
             assertRoundTrip(WipeProfile, false)
             assertRoundTrip(QueryParentIsProfileOwner, true)
+            assertRoundTrip(QueryVendorCloneProfilePresence, com.yzddmr6.prismspace.util.CloneProfilePresence.Present)
             assertRoundTrip(SaveProfileName(10, "Work"), true)
             assertRoundTrip(EstablishBackwardGrant, Unit)
             assertRoundTrip(SetAppOpMode("pkg", 1, 2, 1_000_001), Unit)

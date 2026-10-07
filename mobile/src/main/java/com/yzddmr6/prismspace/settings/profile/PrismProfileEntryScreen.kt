@@ -42,6 +42,7 @@ import com.yzddmr6.prismspace.prism.transfer.TransferEntry
 import com.yzddmr6.prismspace.prism.transfer.TransferLedger
 import com.yzddmr6.prismspace.prism.transfer.TransferSheetState
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.yzddmr6.prismspace.prism.transfer.VendorCloneNotice
 import com.yzddmr6.prismspace.util.DevicePolicies
 
 /**
@@ -76,6 +77,12 @@ fun PrismProfileEntryScreen() {
     val transfers = transferState?.history.orEmpty()
     val pending = transferState?.pending.orEmpty()
     val transfersLifecycleOwner = LocalLifecycleOwner.current
+    // Read-only system-level dual-apps notice: local check, then the main space over the bridge when
+    // this side cannot read sibling profile types. Binder calls, so off the main thread and outside remember{}.
+    var cloneNotice by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        cloneNotice = withContext(Dispatchers.IO) { VendorCloneNotice.show(context) }
+    }
     val scope = rememberCoroutineScope()
     fun reloadTransfers() {
         scope.launch { transferState = withContext(Dispatchers.IO) { loadProfileTransfers(context) } }
@@ -175,6 +182,13 @@ fun PrismProfileEntryScreen() {
                                     Toast.makeText(context, R.string.lz_xfer_picker_unavailable, Toast.LENGTH_LONG).show()
                                 }
                             },
+                        )
+                    }
+                    if (cloneNotice) {
+                        Text(
+                            text = stringResource(R.string.lz_xfer_clone_notice),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                     TransferHistoryList(
