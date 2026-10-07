@@ -3,6 +3,7 @@ package com.yzddmr6.prismspace.bridge
 import android.content.Context
 import android.os.Bundle
 import com.yzddmr6.prismspace.analytics.DiagnosticLog
+import com.yzddmr6.prismspace.provisioning.SystemAppPolicyRuntime
 
 enum class BridgeErrorCategory { HandlerUnavailable, InvalidRequest, ExecutionFailed }
 
@@ -26,8 +27,6 @@ internal object BridgeDispatcher {
                 setPackagesFrozen(context, command.packageNames, command.frozen)
             }
             is EnsureAppFreeToLaunch -> appControl(command) { ensureAppFreeToLaunch(context, command.packageName) }
-            is MarkClonedSystemApp -> appControl(command) { markClonedSystemApp(context, command.packageName) }
-            is EnableSystemApp -> appControl(command) { enableSystemApp(context, command.packageName) }
             is OpenWriteSession -> fileBridge(command) {
                 openWriteSession(context, command.store, command.safeName, command.mimeType, command.relativePath)
             }
@@ -82,6 +81,14 @@ internal object BridgeDispatcher {
             CancelProfileShortcutLaunch -> shortcut(CancelProfileShortcutLaunch) {
                 cancelProfileLaunch(context)
             }
+            is QuerySystemAppSelectionPage -> success(
+                command,
+                SystemAppPolicyRuntime.querySelectionPage(context, command.pageIndex, command.pageSize),
+            )
+            is ApplySystemAppSelection -> success(
+                command,
+                SystemAppPolicyRuntime.applySelection(context, command.changes, command.finish),
+            )
             QueryProfileProvisioningFacts -> success(
                 QueryProfileProvisioningFacts,
                 CoreBridgeOperations.queryProfileProvisioningFacts(context),
